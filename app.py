@@ -20,7 +20,7 @@ def pencil_sketch(image, contrast_level):
     
     return sketch
 
-st.title("Pencil Sketch Converter")
+st.title("Image to Pencil Sketch Converter")
 
 # Add background image (optional)
 st.markdown(

@@ -1,32 +1,28 @@
 import streamlit as st
-import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter
 
 def pencil_sketch(image, contrast_level):
     # Convert to grayscale
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = ImageOps.grayscale(image)
     
     # Invert the grayscale image
-    inverted_image = 255 - gray_image
+    inverted_image = ImageOps.invert(gray_image)
     
     # Blur the inverted image
-    blurred_image = cv2.GaussianBlur(inverted_image, (21, 21), 0)
+    blurred_image = inverted_image.filter(ImageFilter.GaussianBlur(radius=21))
     
     # Invert the blurred image
-    inverted_blurred = 255 - blurred_image
+    inverted_blurred = ImageOps.invert(blurred_image)
     
     # Create the pencil sketch
-    sketch = cv2.divide(gray_image, inverted_blurred, scale=256.0)
-    
-    # Adjust contrast
-    sketch = cv2.convertScaleAbs(sketch, alpha=contrast_level, beta=0)
+    sketch = Image.blend(gray_image, inverted_blurred, alpha=contrast_level)
     
     return sketch
 
-st.title("Image to Pencil Sketch Converter")
+st.title("Pencil Sketch Converter")
 
-# Add background image
+# Add background image (optional)
 st.markdown(
     """
     <style>
@@ -44,10 +40,9 @@ uploaded_file = st.file_uploader("Choose an image...", type="jpg")
 if uploaded_file is not None:
     # Load the image
     image = Image.open(uploaded_file)
-    image = np.array(image)
     
     # Slider for contrast level
-    contrast_level = st.slider("Contrast Level", min_value=0.1, max_value=3.0, value=1.0, step=0.1)
+    contrast_level = st.slider("Contrast Level", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
     
     # Convert the image to pencil sketch with selected contrast level
     sketch = pencil_sketch(image, contrast_level)

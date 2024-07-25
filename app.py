@@ -55,7 +55,7 @@ def convert_image_to_bytes(image):
     image.save(buf, format="PNG")
     return buf.getvalue()
 
-st.title("Pencil Sketch Converter")
+st.title("Image to Pencil Sketch using Python")
 
 # Add background image (optional)
 st.markdown(

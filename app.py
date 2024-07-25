@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-from PIL import Image, ImageOps, ImageFilter
+from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 import io
 
 def pencil_sketch_bw(image, contrast_level, sharpness_level):
@@ -45,12 +45,17 @@ def pencil_sketch_color(image, contrast_level, sharpness_level):
     
     return sharpened_sketch
 
+def adjust_line_thickness(image, thickness_level):
+    # Adjust contrast to simulate line thickness
+    enhancer = ImageEnhance.Contrast(image)
+    return enhancer.enhance(thickness_level)
+
 def convert_image_to_bytes(image):
     buf = io.BytesIO()
     image.save(buf, format="PNG")
     return buf.getvalue()
 
-st.title("Image to Pencil Sketch using Python")
+st.title("Pencil Sketch Converter")
 
 # Add background image (optional)
 st.markdown(
@@ -77,26 +82,33 @@ if uploaded_file is not None:
     # Slider for sharpness level
     sharpness_level = st.slider("Sharpness Level", min_value=0, max_value=200, value=100, step=10)
     
+    # Slider for line thickness level
+    thickness_level = st.slider("Line Thickness Level", min_value=0.5, max_value=3.0, value=1.0, step=0.1)
+    
     # Convert the image to pencil sketches
     sketch_bw = pencil_sketch_bw(image, contrast_level, sharpness_level)
     sketch_color = pencil_sketch_color(image, contrast_level, sharpness_level)
     
-    # Display the original and sketches
-    st.image(image, caption='Original Image', use_column_width=True)
-    st.image(sketch_bw, caption='Black-and-White Pencil Sketch with Contrast Level {:.1f} and Sharpness Level {}'.format(contrast_level, sharpness_level), use_column_width=True)
-    st.image(sketch_color, caption='Color Pencil Sketch with Contrast Level {:.1f} and Sharpness Level {}'.format(contrast_level, sharpness_level), use_column_width=True)
+    # Adjust line thickness
+    bw_with_thickness = adjust_line_thickness(sketch_bw, thickness_level)
+    color_with_thickness = adjust_line_thickness(sketch_color, thickness_level)
     
-    # Add download buttons
+    # Display the original and adjusted images
+    st.image(image, caption='Original Image', use_column_width=True)
+    st.image(bw_with_thickness, caption='Black-and-White Pencil Sketch with Contrast Level {:.1f}, Sharpness Level {}, and Line Thickness Level {:.1f}'.format(contrast_level, sharpness_level, thickness_level), use_column_width=True)
+    st.image(color_with_thickness, caption='Color Pencil Sketch with Contrast Level {:.1f}, Sharpness Level {}, and Line Thickness Level {:.1f}'.format(contrast_level, sharpness_level, thickness_level), use_column_width=True)
+    
+    # Add download buttons for adjusted images
     st.download_button(
         label="Download Black-and-White Pencil Sketch",
-        data=convert_image_to_bytes(sketch_bw),
+        data=convert_image_to_bytes(bw_with_thickness),
         file_name="pencil_sketch_bw.png",
         mime="image/png"
     )
     
     st.download_button(
         label="Download Color Pencil Sketch",
-        data=convert_image_to_bytes(sketch_color),
+        data=convert_image_to_bytes(color_with_thickness),
         file_name="pencil_sketch_color.png",
         mime="image/png"
     )
